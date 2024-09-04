@@ -1,0 +1,24 @@
+{
+  "types": [
+    { "type": "feat", "section": "Features" },
+    { "type": "fix", "section": "Bug Fixes" },
+    { "type": "refactor", "section": "Refactor" },
+    { "type": "chore", "hidden": true },
+    { "type": "docs", "hidden": true },
+    { "type": "style", "hidden": true },
+    { "type": "perf", "hidden": true },
+    { "type": "test", "hidden": true }
+  ],
+  "commitUrlFormat": "https://github.com/ragarwalll/mta-forge/commits/{{hash}}",
+  "compareUrlFormat": "https://github.com/ragarwalll/mta-forge/compare/{{previousTag}}...{{currentTag}}/@REPLACER@",
+  "bumpFiles": [
+    {
+      "filename": "VERSION",
+      "type": "plain-text"
+    },
+    {
+      "filename": "package.json",
+      "type": "json"
+    }
+  ]
+}

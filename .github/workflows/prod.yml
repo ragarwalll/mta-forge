@@ -1,0 +1,99 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# on:
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
+#     branches: [ "main" ]
+
+jobs:
+  # build-and-lint:
+  #   uses: ./.github/workflows/build-and-lint.yml
+
+  build-and-release:
+    # needs: build-and-lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux]
+        goarch: [amd64]
+        # exclude:
+        #   - goos: windows
+        #     goarch: arm64
+    # strategy:
+    #   matrix:
+    #     goos: [linux, windows, darwin]
+    #     goarch: [amd64, arm64]
+    #     exclude:
+    #       - goos: windows
+    #         goarch: arm64
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          go build -o myapp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: myapp-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: myapp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
+
+  create-release:
+    needs: build-and-release
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v2
+      - name: Configure committer
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'  # or your preferred Node.js version
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.60.3
+          golangci-lint --version
+
+      - name: Bump version
+        run: npm run release
+
+      - name: Push changes
+        run: |
+          git push origin HEAD:main
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+        run: |
+          gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="v${tag#v}" \
+              --notes-file CHANGELOG.md \
+              ./myapp-*/*

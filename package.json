@@ -1,0 +1,30 @@
+{
+  "name": "mta-forge",
+  "version": "0.0.0",
+  "description": "Deploy your SAP apps to BTP in a better way",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "husky install",
+    "release": "standard-version",
+    "release:minor": "standard-version --release-as minor",
+    "release:patch": "standard-version --release-as patch",
+    "release:major": "standard-version --release-as major"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ragarwalll/mta-forge.git"
+  },
+  "keywords": [],
+  "author": "ragarwalll <agarwal.rahul324@gmail.com>",
+  "license": "GPL-3.0-only",
+  "devDependencies": {
+    "husky": "^9.1.5",
+    "standard-version": "^9.5.0",
+    "replace": "^1.2.2"
+  },
+  "standard-version": {
+    "skip": {
+      "tag": true
+    }
+  }
+}
