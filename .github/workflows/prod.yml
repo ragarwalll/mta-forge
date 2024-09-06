@@ -5,33 +5,20 @@ on:
     tags:
       - 'v*'
 
-# on:
-#   push:
-#     branches: [ "main" ]
-#   pull_request:
-#     branches: [ "main" ]
-
 jobs:
-  # build-and-lint:
-  #   uses: ./.github/workflows/build-and-lint.yml
+  build-and-lint:
+    uses: ./.github/workflows/build-and-lint.yml
 
   build-and-release:
-    # needs: build-and-lint
+    needs: build-and-lint
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [linux]
-        goarch: [amd64]
-        # exclude:
-        #   - goos: windows
-        #     goarch: arm64
-    # strategy:
-    #   matrix:
-    #     goos: [linux, windows, darwin]
-    #     goarch: [amd64, arm64]
-    #     exclude:
-    #       - goos: windows
-    #         goarch: arm64
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+        exclude:
+          - goos: windows
+            goarch: arm64
 
     steps:
       - uses: actions/checkout@v3
@@ -44,13 +31,13 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          go build -o myapp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
+          go build -o mta-forge-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: myapp-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: myapp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
+          name: mta-forge-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: mta-forge-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
 
   create-release:
     needs: build-and-release
@@ -68,7 +55,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # or your preferred Node.js version
+          node-version: '18'
 
       - name: Install dependencies
         run: npm i
@@ -96,4 +83,4 @@ jobs:
               --repo="$GITHUB_REPOSITORY" \
               --title="v${tag#v}" \
               --notes-file CHANGELOG.md \
-              ./myapp-*/*
+              ./mta-forge-*/*
